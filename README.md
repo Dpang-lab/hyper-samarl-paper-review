@@ -23,14 +23,12 @@ The robots must repeatedly decide **which POIs to visit and in what order** whil
 
 Hyper-SAMARL uses two action levels:
 
-$$
+```math
 \text{macro-action }u_{t_k}=\text{POI assignment/sequence},
-$$
-
-$$
+```
+```math
 \text{local action }a_t=[v_x,v_y]=\text{navigation command}.
-$$
-
+```
 Macro-actions are updated at decision times $t_k$, while local velocity actions are executed between two macro decisions. Thus the paper is not only a task-allocation method and not only a navigation method; it jointly learns both.
 
 ![Hyper-SAMARL architecture](images/hyper-samarl-architecture.png)
@@ -41,18 +39,16 @@ Macro-actions are updated at decision times $t_k$, while local velocity actions 
 
 Our direction asks for an assignment model of the form
 
-$$
+```math
 A:(\mathcal R,\mathcal G,\mathcal E,\mathcal C)
 \rightarrow \text{robot–goal assignment},
-$$
-
+```
 where $\mathcal C$ represents collective interaction context. The objective is not merely short individual robot–goal distances, but good system behavior after assignment and planning:
 
-$$
+```math
 A^*=\arg\min_A J_{\mathrm{system}}
 \big(A,\mathrm{Planner}(A),\mathcal E\big).
-$$
-
+```
 Hyper-SAMARL follows the same broad philosophy. It represents robots, pedestrians, and POIs together, then lets downstream execution determine whether an assignment was good. It therefore supports two important claims behind our project:
 
 1. assignment should depend on the collective context, not only independent robot–goal costs;
@@ -76,18 +72,16 @@ Hyper-SAMARL is therefore a **representation and formulation reference**, not ye
 
 Ordinary assignment commonly builds
 
-$$
+```math
 C=[c_{ij}],\qquad c_{ij}=d(r_i,g_j),
-$$
-
+```
 and then solves a linear assignment problem. Each matrix entry evaluates one robot–goal pair independently.
 
 Hyper-SAMARL instead creates vertices for robots, humans, and POIs. Its hyperedges can connect more than two entities, allowing a relation such as
 
-$$
+```math
 (r_1,r_2,h_1,g_3)
-$$
-
+```
 to influence a decision jointly. This matters when a robot–goal pair appears attractive alone but becomes poor because another robot or a crowd occupies the same region.
 
 ### 3.2 Spatial and temporal context before assignment
@@ -100,10 +94,9 @@ The initialized hypergraph groups nearby entities and uses transformer features 
 
 The reusable idea for our work is:
 
-$$
+```math
 \boxed{\text{construct a collective interaction representation before selecting the assignment.}}
-$$
-
+```
 ### 3.4 Assignment as a temporally extended macro-action
 
 An ordinary solver outputs a matching once. Hyper-SAMARL’s macro-policy outputs POI assignments/sequences repeatedly as the environment changes. This gives adaptability, but it also means the paper does not isolate the one-shot assignment question.
@@ -112,7 +105,7 @@ An ordinary solver outputs a matching once. Hyper-SAMARL’s macro-policy output
 
 The macro-action reward is the discounted return accumulated from local navigation between macro-action updates:
 
-$$
+```math
 \hat R(\hat s,\hat u)
 =
 \mathbb E\!\left[
@@ -120,17 +113,15 @@ $$
 \hat R(\hat s_t,\hat a_t)
 \mid \hat a_t\sim\hat u(H_t)
 \right].
-$$
-
+```
 The causal chain is therefore
 
-$$
+```math
 \text{assignment}
 \rightarrow \text{navigation behavior}
 \rightarrow \text{system reward}
 \rightarrow \text{update the assignment policy}.
-$$
-
+```
 This is the closest connection to our desired system-level assignment objective.
 
 ## 4. Their reward shows what “good assignment” means
@@ -144,21 +135,19 @@ For robot $i$, the local reward in Eq. (12) gives:
 - a proximity penalty, down to **−5**, when a robot comes within 0.45 m of a human;
 - otherwise, goal-progress reward minus a time-efficiency penalty:
 
-$$
+```math
 \frac{1}{2}\Delta d_{i,g}-f_t(t).
-$$
-
+```
 Therefore, in this paper a “good assignment” is one whose execution produces:
 
-$$
+```math
 \boxed{
 \text{more completed POIs}
 +\text{faster progress}
 +\text{fewer collisions}
 +\text{more comfortable human–robot separation}
 }.
-$$
-
+```
 This is substantially richer than minimizing $\sum_i d(r_i,g_i)$. It is also an important warning: the learned meaning of “good” is entirely determined by the reward. For our project, a reward or supervised target must explicitly reflect our intended collective behavior—executed makespan, total flowtime, waiting, conflicts, crossing, and congestion—not only completion and social distance.
 
 ## 5. What has this paper solved relative to our problem?
@@ -193,10 +182,9 @@ The paper compares random task allocation with different planners, removes the l
 
 Hyper-SAMARL learns the allocator and navigator together. If performance improves, it is difficult to attribute the gain specifically to the assignment. Our first study should hold the planner fixed:
 
-$$
+```math
 A_1\rightarrow P,\qquad A_2\rightarrow P,\qquad A_3\rightarrow P.
-$$
-
+```
 ### 6.2 It is not one-shot goal assignment
 
 The method repeatedly updates assignments and POI visit order. It therefore solves a more dynamic but different problem than a single permutation between $N$ robots and $N$ goals.
@@ -231,34 +219,31 @@ Completion, collision avoidance, human comfort, navigation efficiency, and assig
 
 Represent robots, goals, and possibly environment features as a set or graph rather than flattening them into independent cost entries. Candidate nodes are:
 
-$$
+```math
 \{r_1,\ldots,r_N,g_1,\ldots,g_N,b_1,\ldots,b_K\},
-$$
-
+```
 where $b_k$ denotes a bottleneck, corridor, or other interaction-critical region. A hypergraph is one option, but a graph network or set transformer should remain valid alternatives until experiments justify the extra complexity.
 
 ### Formulation to reuse: judge assignments through execution
 
 Use the same downstream planner to evaluate all assignments:
 
-$$
+```math
 \text{configuration}
 \rightarrow A
 \rightarrow \text{fixed planner }P
 \rightarrow J_{\mathrm{system}}.
-$$
-
+```
 A possible objective is
 
-$$
+```math
 J=
 \lambda_M M
 +\lambda_S SOC
 +\lambda_C N_{\mathrm{conflict}}
 +\lambda_W T_{\mathrm{wait}}
 +\lambda_B C_{\mathrm{bottleneck}}.
-$$
-
+```
 The weights should not replace reporting the individual metrics.
 
 ### Baselines to use
@@ -289,15 +274,14 @@ For every method, report assignment time, planning time, executed makespan, flow
 
 ### Future hypothesis derived from the paper
 
-$$
+```math
 \boxed{
 \begin{aligned}
 &\text{Higher-order relationships among robots, goals, and environment topology}\\
 &\text{predict downstream interaction better than independent pairwise distance,}\\
 &\text{and can therefore produce better one-shot assignments under a fixed planner.}
 \end{aligned}}
-$$
-
+```
 This is testable and directly aligned with the manual. It is more precise than claiming that “hypergraphs improve assignment.”
 
 ## 8. Final assessment
